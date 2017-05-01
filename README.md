@@ -8,8 +8,8 @@ Se debe codificar el algoritmo de decodificación y encodificación base64 en As
 
 ## Archivos 
 
-*tp0.c
-*base64.S
+* tp0.c
+* base64.S
 
 ## Funciones
 
