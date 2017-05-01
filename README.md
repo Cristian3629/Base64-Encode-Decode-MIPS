@@ -14,5 +14,5 @@ Se debe codificar el algoritmo de decodificación y encodificación base64 en As
 ## Funciones
 
 * main() : Se encarga de abrir los archivos correspondientes.
-* encode64(): Se encarga de encodificar el archivo input y escribir el resultado en el archivo output.
-* decode64(): Se encarga de decodificar el archivo input y escribir el resultado en el archivo output.
+* base64_encode(): Se encarga de encodificar el archivo input y escribir el resultado en el archivo output.
+* base64_decode(): Se encarga de decodificar el archivo input y escribir el resultado en el archivo output.
