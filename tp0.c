@@ -97,8 +97,9 @@ int main (int argc, char *argv[]) {
 		}
 	}
 
-	//fd de STDIN es 1
+	//fd de STDIN es 0
 	int infd = 0;
+	//fd de STDOUT es 1
 	int outfd = 1;
 	//Si no leo de STDIN, obtengo el fd del archivo.
 	if(!stdinB){
@@ -112,6 +113,5 @@ int main (int argc, char *argv[]) {
 	}else{
 		base64_decode(infd,outfd);
 	}
-
 	return 0;
 }
