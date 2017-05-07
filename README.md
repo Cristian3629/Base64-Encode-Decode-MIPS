@@ -23,8 +23,10 @@ Se debe codificar el algoritmo de decodificación y encodificación base64 en As
 ## Compilacion
 
 * Primero se genera el .o del archivo .c y el .S
-        gcc -c -Wall tp1.c
-        gcc -c -Wall base64_encode.S
+        
+        gcc -c -ggdb -Wall tp1.c
+        gcc -c -ggdb -Wall base64_encode.S
 
 * Luego se compila todo junto los .o generando un ejecutable
+        
         gcc tp1.o base64_decode.o -o base64_encode
