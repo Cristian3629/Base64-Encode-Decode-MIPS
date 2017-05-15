@@ -16,29 +16,36 @@ base64_encode:
               .cpload t9
               .set reorder
 
-              subu sp,sp,40       #El 40 lo tengo que cambiar luego.
-              .cprestore 24       #No se que hace
-              sw gp,36(sp)        #guardo el global pointer
-              sw ra,32(sp)        #guardo el ra
-              sw $fp,28(sp)       #guardo el frama pointer
-              move $fp,sp         #inserto el valor del stack pointer en el frame pointer
-              sw a0,40(sp)        #guardo a0 en el stack del caller
-              sw a1,44(sp)        #guardo a1 en el stak de caller
+              subu sp,sp,48       #El 40 lo tengo que cambiar luego.
+              .cprestore 48       #No se que hace
+              sw gp, 44(sp)        #guardo el global pointer
+              sw ra, 40(sp)        #guardo el ra
+              sw $fp,36(sp)       #guardo el frama pointer
+
+              sw a0,48(sp)        #guardo a0 en el stack del caller
+              sw a1,56(sp)        #guardo a1 en el stak de caller
+
               # voy a utilizar los registros s0,s1,s2 asi que los guardo
 
-              sw s0,24(sp)
-              sw s1,20(sp)
-              sw s2,16(sp)
+              sw s0,32(sp)
+              sw s1,28(sp)
+              sw s2,24(sp)
+
+              # muevo el sp en el fp y lo utilizo
+
+              move $fp,sp
 
               #cargo los parametros para hacer la syscall
               #leo del archivo que me pasaron por parametro
-              lw a0,40(sp)        # fd = infd
+
+_read_file:     lw a0,48($fp)        # fd = infd
               la a1,buffer        # buf = es el direccion donde quiere que la funcion guarde lo que leyo
-              lw a2,lenght        # count = 4
+              lw a2,lenght        # count = 3
               li v0,SYS_read      # se guarda en v0 el codigo del system call
               syscall
 
-
+              #guardo la cantidad de bytes que lei del archivo
+              sw v0,12($fp)
 
               #Dada la arquitectura little endian, y para poder encodear a
               #base 64, si tengo en el archivo abc, en el buffer me quedaria
@@ -68,7 +75,7 @@ base64_encode:
 
 
               # t4 es cantidad de bits que shifteo a la izquierda
-shifteo:      mul t4,s0,s2        # t4 = t0*t2 = i*6
+_shifteo:      mul t4,s0,s2        # t4 = t0*t2 = i*6
 
               addiu t4,8
               # t5 es la cantidad de bits que shifteo a la derecha
@@ -103,12 +110,24 @@ shifteo:      mul t4,s0,s2        # t4 = t0*t2 = i*6
               sub s1,s1,1
               # i++,t0++
               addiu s0,s0,1
-              #si t1 es negativo, termino el programa
-              bltz s1,fin
-              j shifteo
+              #si t1 es negativo, termino el loop
+              bltz s1,_verific_status
+              j _shifteo
+
+
+_verific_status:
+              #obtengo la cantidad de bytes que lei del archivo
+              lw t0,12($fp)
+              li t1,3
+
+              #si la cantidad de bytes es menor a 3, termino el programa
+              blt t0,t1,_fin
+              j _read_file
+
+
 
               #imprimo por pantalla el fin de linea
-fin:          li a0,1
+_fin:          li a0,1
               la a1,endLine
               li a2,1
               li v0,SYS_write
