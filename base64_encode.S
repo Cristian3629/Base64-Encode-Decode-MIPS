@@ -26,34 +26,62 @@ base64_encode:
               sw a1,44(sp)        #guardo a1 en el stak de caller
 
 
-
+              #cargo los parametros para hacer la syscall
+              #leo del archivo que me pasaron por parametro
               lw a0,40(sp)        # fd = infd
               la a1,buffer        # buf = es el direccion donde quiere que la funcion guarde lo que leyo
               lw a2,lenght        # count = 4
               li v0,SYS_read      # se guarda en v0 el codigo del system call
               syscall
-              
+
+
+
+              #Dada la arquitectura little endian, y para poder encodear a
+              #base 64, si tengo en el archivo abc, en el buffer me quedaria
+              #cba, para eso realizo un swap entre el primer e ultimo termino.
+
+              # cargo la direccion del buffer en t1
+              la t1,buffer
+
+              # t3 = c
+              lbu t3,0(t1)
+
+              # t4 = a
+              lbu t4,2(t1)
+
+              # buffer[2] = t3 = c
+              sb t3,2(t1)
+
+              # buffer[0] = t4 = a
+              sb t4,0(t1)
+
               # i = 0
               li t0,0             # t0 = 0
-              # j = 2
-              li t1,2             # t1 = 2
+              # j = 3
+              li t1,3             # t1 = 2
               # cantidad bits de byte base 64
               li t2,6             # t2 = 6
               # catidad de bits que no utilizo
               li t3,8            # t3 = 8
-              # t4 es cantidad de bits que shifteo a la izquierda
+
+
+              # t4 es cantidad de bits que shifteo a la derecha
 shifteo:      mul t4,t0,t2        # t4 = t0*t2 = i*6
+
+              # t5 es la cantidad de bits que shifteo a la izquierda
               mul t5,t1,t2        # t5 = t1*t2 = j*6
-              lw t6,buffer        # cargo en t9 los 3 bytes leidos 
-              
+              # sumo a t5 el offset
+              add t5,t5,t3
+              lw t6,buffer        # cargo en t9 los 3 bytes leidos
+
               # obtengo los 6 bits que me interesa
-              
-              sll t6,t6,t4        # shift left logical t4 bits
-              srl t6,t6,t5        # shift right logical t5 bits
-              
+
+              sll t6,t6,t5        # shift left logical t5 bits
+              srl t6,t6,t4        # shift right logical t4 bits
+
               # en t6 tengo los bits que me interesa, en los bits mas bajos
-              
-               
+
+
               li a0,1             # fd = 1
               la a1,buffer        # el syscall lee del buffer
               li a2,4             # cantidad de bytes a escribir = 4
@@ -72,8 +100,8 @@ fin:
               .data      # segmento read-only data
               .align 2
 
-_buffer:       .asciiz "Hello word\n"  
-lenght:       .word 4
+_buffer:       .asciiz "Hello word\n"
+lenght:       .word 3
               .align 0
-buffer: .space 5
-
+buffer:       .space 5
+bufferAux:    .space 4
