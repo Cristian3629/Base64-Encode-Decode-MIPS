@@ -24,7 +24,11 @@ base64_encode:
               move $fp,sp         #inserto el valor del stack pointer en el frame pointer
               sw a0,40(sp)        #guardo a0 en el stack del caller
               sw a1,44(sp)        #guardo a1 en el stak de caller
+              # voy a utilizar los registros s0,s1,s2 asi que los guardo
 
+              sw s0,24(sp)
+              sw s1,20(sp)
+              sw s2,16(sp)
 
               #cargo los parametros para hacer la syscall
               #leo del archivo que me pasaron por parametro
@@ -41,58 +45,82 @@ base64_encode:
               #cba, para eso realizo un swap entre el primer e ultimo termino.
 
               # cargo la direccion del buffer en t1
-              la t1,buffer
+              li t1,2
 
               # t3 = c
-              lbu t3,0(t1)
+              lbu t3,buffer(zero)
 
               # t4 = a
-              lbu t4,2(t1)
+              lbu t4,buffer(t1)
 
               # buffer[2] = t3 = c
-              sb t3,2(t1)
+              sb t3,buffer(t1)
 
               # buffer[0] = t4 = a
-              sb t4,0(t1)
+              sb t4,buffer(zero)
 
               # i = 0
-              li t0,0             # t0 = 0
+              li s0,0             # t0 = 0
               # j = 3
-              li t1,3             # t1 = 2
+              li s1,3             # t1 = 3
               # cantidad bits de byte base 64
-              li t2,6             # t2 = 6
-              # catidad de bits que no utilizo
-              li t3,8            # t3 = 8
+              li s2,6             # t2 = 6
 
 
-              # t4 es cantidad de bits que shifteo a la derecha
-shifteo:      mul t4,t0,t2        # t4 = t0*t2 = i*6
+              # t4 es cantidad de bits que shifteo a la izquierda
+shifteo:      mul t4,s0,s2        # t4 = t0*t2 = i*6
 
-              # t5 es la cantidad de bits que shifteo a la izquierda
-              mul t5,t1,t2        # t5 = t1*t2 = j*6
-              # sumo a t5 el offset
-              add t5,t5,t3
-              lw t6,buffer        # cargo en t9 los 3 bytes leidos
+              addiu t4,8
+              # t5 es la cantidad de bits que shifteo a la derecha
+              mul t5,s1,s2        # t5 = t1*t2 = j*6
+              li t6,0
+              lw t6,buffer        # cargo en t6 los 3 bytes leidos
 
               # obtengo los 6 bits que me interesa
 
-              sll t6,t6,t5        # shift left logical t5 bits
-              srl t6,t6,t4        # shift right logical t4 bits
+              sll t6,t6,t4        # shift left logical t4 bits
+              srl t6,t6,t4
+
+              srl t6,t6,t5        # shift right logical t4 bits
+
 
               # en t6 tengo los bits que me interesa, en los bits mas bajos
+              # en t7 guardo la direccion de memoria de mi array de caracteres base64
 
+              #cargo en t3 el caracter que corresponde en base64
+              lbu t3,base64(t6)
+              #cargo en un buffer de 1 byte el caracter en  base 64
+              sb  t3,character
 
-              li a0,1             # fd = 1
-              la a1,buffer        # el syscall lee del buffer
-              li a2,4             # cantidad de bytes a escribir = 4
-              li v0,SYS_write            # hago una llamada a syscall
+              #imprimo por pantalla el caracter en base64
+              li a0,1             #el fd = 1 es porque imprimo por STDIN
+              la a1,character     #cargo la direccion de la direccion de memoria
+              li a2,1             #el syscall tiene que leer un byte
+              li v0,SYS_write
               syscall
-              j fin               # salto a fin, para liberar el stack
 
-fin:
+              # j--, t1--
+              sub s1,s1,1
+              # i++,t0++
+              addiu s0,s0,1
+              #si t1 es negativo, termino el programa
+              bltz s1,fin
+              j shifteo
+
+              #imprimo por pantalla el fin de linea
+fin:          li a0,1
+              la a1,endLine
+              li a2,1
+              li v0,SYS_write
+              syscall
+
+              #recupero el stack a su estado anterior y los registros que utilice
               lw gp, 36(sp)
               lw ra,32(sp)
               lw $fp,28(sp)
+              lw s0,24(sp)
+              lw s1,20(sp)
+              lw s2,16(sp)
               addu sp,sp,40
               jr ra
               .end base64_encode
@@ -100,8 +128,16 @@ fin:
               .data      # segmento read-only data
               .align 2
 
-_buffer:       .asciiz "Hello word\n"
 lenght:       .word 3
               .align 0
+              #reservo un espacio para guardar lo leido del archivo
 buffer:       .space 5
-bufferAux:    .space 4
+              # reservo un espacio para guardar el caracter de base64
+character:    .space 1
+
+              .rdata
+              .align 2
+
+
+base64:       .ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
+endLine:      .asciiz "\n"
