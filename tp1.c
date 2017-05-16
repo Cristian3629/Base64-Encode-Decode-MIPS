@@ -8,7 +8,7 @@
 //#include "base64_decode.S"
 
 extern int base64_encode(int infd,int outfd);
-//extern int base64_decode(int infd,int outfd);
+extern int base64_decode(int infd,int outfd);
 
 void help() {
         printf( "Usage:\n"
@@ -27,7 +27,7 @@ void help() {
 }
 
 void version() {
-        printf("Encoder/Decoder Base64\n"
+        printf("Encoder/Decoder Base64 | MIPS Version\n"
                 "66.20 Organizacion de Computadoras FIUBA\n"
                 );
 }
@@ -36,8 +36,10 @@ void version() {
 FILE* fileOpen(char* nombre){
         FILE* fp = fopen(nombre,"rb");
         if (fp == NULL){
-                fputs("El archivo no existe o no puede ser abierto.\n",stderr);
-                exit(1);
+                //Si el archivo no exite lo creo
+                fp = fopen(nombre, "wb");
+                //fputs("El archivo no existe o no puede ser abierto.\n",stderr);
+                //exit(1);
         }
         return fp;
 }
@@ -119,7 +121,7 @@ int main (int argc, char *argv[]) {
         if (encode64){
                 base64_encode(infd,4);
         }else{
-                //base64_decode(infd,outfd);
+                base64_decode(infd, outfd);
         }
         return 0;
 }
