@@ -102,7 +102,13 @@ El camino es inverso a la codificación, se toma una cantidad establecida de byte
 
 
 \subsection{Dificultades}
-El tiempo de aprendizaje de las instrucciones assembly, sumado al trabajo de adecuación de las estructuras conocidas del C/C++ hacia còdigo y comentarios en assembly es considerable y tedioso y novedoso. Se encontraron dificultades en...
+El tiempo de aprendizaje de las instrucciones assembly, sumado al trabajo de adecuación de las estructuras conocidas del C/C++ hacia còdigo y comentarios en assembly es considerable y tedioso y novedoso.
+El uso de las funciones SYS_READ y SYS_WRITE, a diferencia de otras system calls vistas para assembly, utilizan tres parámetros. Por ejemplo, en la de lectura: la dirección de destino, la de lectura, y el literal indicando la cantidad de bytes a leer.
+
+Prototipo de SYS_READ en C:
+Asmlinkage ssize_t sys_read (unsigned int fd, char __user * buf, size_t count) 
+
+Además, se encontraron dificultades en...
 
 \section{Compilación}
 Los argumentos utilizados para la compilación son los siguientes:
@@ -114,30 +120,19 @@ Los argumentos utilizados para la compilación son los siguientes:
 
 \item[-Wall] Activa los mensajes de warning.
 
-\item[-I] Agrega el directorio especificado a la lista de directorios buscados para los archivos header
-\end{description}
-
-Los argumentos para la generación del código assembly con los siguientes:
-
+Se usaron las siguientes lineas de comandos bash para la generación del ejecutable
 \begin{description}
-	\item[-Wall] Activa los mensajes de warning.
+	\item[] gcc -c -ggdb -Wall tp1.c
 	
-	\item[-std=c99] Se selecciona el estándar C99.
+	\item[] gcc -c -ggdb -Wall base64_encode.S
 	
-	\item[-O0] No se aplica optimizaciones por parte del compilador
+	\item[] gcc -c -ggdb -Wall base64_decode.S
 	
-	\item[-S]  detiene al compilador luego de generar el assembly.
-	
-	\item[-mrnames] indica al compilador que
-	genere la salida utilizando nombre de registro en lugar
-	de número de registro
-	
+	\item[] gcc tp1.o base64_decode.o base64_encode.o -o tp
+			
 \end{description}
 
 \section{Resultados}
-
-\subsection{Código Assembly}
-Se adjunta una porción del código MIPS al final del informe.
 
 \subsection{Pruebas}
 A continuación se muestran las pruebas realizadas con sus respectivas salidas por consola y/o archivos.
@@ -200,12 +195,14 @@ Man is distinguished, not only by his reason, but by this singular passion from 
 }
 
 \section{Conclusiones}
-Luego de ejecutar ambas versiones, tanto la realizada con compilación normal como la realizada sobre el emulador, podemos concluir que se han comprendido los usos generales de las herramientas propuestas por la materia y se han afianzado las técnicas de programación necesarias para resolver este tipo de problemas.
+...
 
 % Citas bibliográficas.
 \begin{thebibliography}{99}
 
-\bibitem{GXemul} Sitio web de GXemul http://gxemul.sourceforge.net/
+\bibitem{NetBsd} Sitio web http://blog.csdn.net/guopeixin/article/details/5962489
+
+\bibitem{API} System v Application Binary Interface MIPS RISC procesor supplement, 3rd edition 
 
 \bibitem{Manual getopt} Sitio web de GNU https://www.gnu.org/
 
