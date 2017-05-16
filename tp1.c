@@ -119,7 +119,7 @@ int main (int argc, char *argv[]) {
                 outfd = getfd(outputFileName);
         }
         if (encode64){
-                base64_encode(infd,4);
+                base64_encode(infd,outfd);
         }else{
                 base64_decode(infd, outfd);
         }

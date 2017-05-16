@@ -7,11 +7,11 @@
 .global base64_encode
 .ent base64_encode
 
-#la llamada a esta funcion va a ser readFile(int fd, int bytes);
-#a0 es el file descriptor del archivo
-#a1 es la cantidad de bytes que voy a leer del archivo
+
+
+
 base64_encode:
-              .frame $fp, 48, ra
+              .frame $fp, 40, ra
               .set noreorder
               .cpload t9
               .set reorder
@@ -23,7 +23,7 @@ base64_encode:
               sw $fp,36(sp)       #guardo el frama pointer
 
               sw a0,48(sp)        #guardo a0 en el stack del caller
-              sw a1,56(sp)        #guardo a1 en el stak de caller
+              sw a1,52(sp)        #guardo a1 en el stak de caller
 
               # voy a utilizar los registros s0,s1,s2 asi que los guardo
 
@@ -38,25 +38,37 @@ base64_encode:
               #cargo los parametros para hacer la syscall
               #leo del archivo que me pasaron por parametro
 
-_read_file:     lw a0,48($fp)        # fd = infd
+_read_file:   lw a0,48($fp)        # fd = infd
               sw zero,buffer
               la a1,buffer        # buf = es el direccion donde quiere que la funcion guarde lo que leyo
               lw a2,lenght        # count = 3
               li v0,SYS_read      # se guarda en v0 el codigo del system call
               syscall
 
-              #guardo la cantidad de bytes que lei del archivo
+             #guardo la cantidad de bytes que lei del archivo
               sw v0,16($fp)
-              li t0,1
-              #si solo lei un byte salto a ver si es un salto de linea
-              beq v0,t0,_check_end_line
 
-              #Dada la arquitectura little endian, y para poder encodear a
-              #base 64, si tengo en el archivo abc, en el buffer me quedaria
-              #cba, para eso realizo un swap entre el primer e ultimo termino.
+             # llamo al modulo que verificar si hay algun salto de linea
+             # en el buffer
+
+              j _check_jump_line
+
+_check_number_bytes_read:
+              # si la cantidad de bytes leidos es cero, termino el programa
+              lw t0,16($fp)
+              beq zero,t0,_fin
 
 _encode:
-              # cargo la direccion del buffer en t1
+             # Dada la arquitectura little endian y para poder encodear
+             # base64, si tengo en el archivo abc, en el buffer me
+             # queda cba, para eso realizo el swap entre el primer byte
+             # y el ultimo
+
+
+
+              #cargo en t0 la primera posicion del buffer
+              li t0,1
+              # cargo la ultima posicion en t1
               li t1,2
 
               # t3 = c
@@ -70,6 +82,8 @@ _encode:
 
               # buffer[0] = t4 = a
               sb t4,buffer(zero)
+
+
 
               # i = 0
               li s0,0             # t0 = 0
@@ -109,9 +123,9 @@ _get_character:
               sb  t3,character
 
               #imprimo por pantalla el caracter en base64
-              li a0,1             #el fd = 1 es porque imprimo por STDIN
-              la a1,character     #cargo la direccion de la direccion de memoria
-              li a2,1             #el syscall tiene que leer un byte
+              lw a0,52($fp)             # el fd = 1 es porque imprimo por STDIN
+              la a1,character     # cargo la direccion de la direccion de memoria
+              lw a2,1             # el syscall tiene que leer un byte
               li v0,SYS_write
               syscall
 
@@ -134,14 +148,33 @@ _verific_status:
               j _read_file
 
 
-_check_end_line:
-              #aca verifico si lo que lei fue un salto de linea
-              lw t0,buffer
-              #el codigo ASCII del salto de linea /n es 10
-              li t1,10
-              #si recibi un salto de linea, no encodeo y salgo del programa
-              beq t0,t1,_fin
 
+_reduce_of_bytes_read:
+             #aca descuento en uno la cantidad de bytes leidos
+             lw t0,16($fp)        # obtengo del stack la cantidad de bytes leidos
+             subu t0,t0,1         # descuento en uno
+             sw t0,16($fp)        # lo cargo devuelta en memoria
+             j _check_number_bytes_read
+
+_delete_jump_line:
+             # en esta funcion elimino el salto de linea de mi buffer
+             # dado que se que hay un salto de linea y esta al final
+             # con la cantidad de bytes puedo saber donde esta
+             lw t0, 16($fp)
+             subu t0,t0,1
+             sb zero, buffer(t0)
+             j _reduce_of_bytes_read
+
+_check_jump_line:
+              # aca verifico que si tengo salto de linea, en caso de que
+              # si haya, lo elimino del buffer y descuento en 1 la cantidad
+              # de bytes leidos
+              lw t0,16($fp)       # obtengo la cantidad de bytes leidos
+              subu t0,t0,1        # decremento en 1, para obtener la posicion del /n
+              lbu t1,buffer(t0)   # cargo el byte que seria el salto de linea
+              li t2,10            # cargo en t2 el codigo ASCII de /n
+              beq t2,t1,_delete_jump_line
+              j _check_number_bytes_read
 
 _check_padding:
               #chequeo si los bits leidos corresponden a un paddig
@@ -184,4 +217,4 @@ character:    .space 1
 
 
 base64:       .ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-endLine:      .asciiz "\n"
+endLine:      .asciiz "\n
