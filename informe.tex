@@ -1,0 +1,216 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Definición del tipo de documento.                                           %
+% Posibles tipos de papel: a4paper, letterpaper, legalpapper                  %
+% Posibles tamaños de letra: 10pt, 11pt, 12pt                                 %
+% Posibles clases de documentos: article, report, book, slides                %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[a4paper,10pt]{article}
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Los paquetes permiten ampliar las capacidades de LaTeX.                     %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Paquete para inclusión de gráficos.
+\usepackage{graphicx}
+
+% Paquete para definir la codificación del conjunto de caracteres usado
+% (latin1 es ISO 8859-1).
+\usepackage[latin1]{inputenc}
+
+% Paquete para definir el idioma usado.
+\usepackage[spanish]{babel}
+
+%Paquete para poder insetar código de programación
+\usepackage{listings}
+
+% Título principal del documento.
+\title{		\textbf{Trabajo Práctico #1: Conjunto de instrucciones MIPS}}
+
+% Información sobre los autores.
+\author{	Leandro Huemul Desuque, \textit{Padrón Nro. 95836}                     \\
+            \texttt{ desuqueleandro@gmail.com }                                              \\
+            Cristian Nicolas Gonzalez, \textit{Padrón Nro. 94719}                     \\
+            \texttt{ cristian3629@gmail.com }                                              \\
+            Diego Alejandro Ricci, \textit{Padrón Nro. 79741}                     \\
+            \texttt{ diegoricci79741@yahoo.com.ar }                                      \\[2.5ex]
+            \normalsize{1er. Cuatrimestre de 2017}                       \\
+            \normalsize{66.20 Organización de Computadoras}                             \\
+            \normalsize{Facultad de Ingeniería, Universidad de Buenos Aires}            \\
+       }
+\date{}
+
+
+
+\begin{document}
+
+
+
+% Inserta el título.
+\maketitle
+
+% Quita el número en la primer página.
+\thispagestyle{empty}
+
+% Resumen
+\begin{abstract}
+Se desarrolló un programa en C que codifica y decodifica información en formato base 64. Asimismo, parte del código se realizó directamente en assembly MIPS32; en particular las funciones C: int base64_encode(int infd, int outfd) e: int base64_decode(int infd, int outfd). Más cualquiera otra función que fuera derivada como solución de éstas dos.
+El objetivo del presente trabajo fue familiarizarse con las principales instrucciones del lenguaje assembly MIPS, y con el concepto de ABI (application binary interface).
+\end{abstract}
+
+\section{Introducción}
+Se implementó en C un codificador/decodificador de información en base 64.
+Base 64 es un sistema de numeración posicional que usa 64 símbolos como base. Es la mayor potencia de dos que puede ser representada usando únicamente los caracteres imprimibles de ASCII. Esto ha propiciado su uso para codificación de correos electrónicos, PGP y otras aplicaciones.
+Como puede entenderse, se trata de un sistema simple por lo que resulta una buena elección si el objetivo final no es construir un sistema elaborado sino familiarizarse con el lenguaje assembly de la arquitectura MIPS, más ciertas especificaciones de ABI.
+
+% \textit{66.20 Organización de Computadoras} ESTO PONE TEXTO EN CURSIVA
+
+\section{Desarrollo}
+\subsection{Documentación del código C}
+La documentacion de las funciones se detalla por orden de aparición en el código fuente.
+
+\subsubsection{\texttt{help}}
+\texttt{help} despliega la ayuda para el usuario final.
+
+\subsubsection{\texttt{version}}
+\texttt{version} informa la version del código fuente.
+
+\subsubsection{\texttt{fileOpen}}
+\texttt{fileOpen} se encarga de abrir archivos.
+
+\subsubsection{\texttt{base64_encode}}
+\texttt{base64_encode} se encarga de codificar a base 64 un mensaje leído de un archivo y guarda la salida codificada en otro archivo. 
+
+\subsubsection{\texttt{base64_decode}}
+\texttt{base64_decode} se encarga de decodificar desde base 64 un mensaje leído de un archivo y guarda la salida decodificada en otro archivo. 
+
+\subsubsection{\texttt{charCopy}}
+\texttt{charCopy} copia cadenas de caracteres.
+
+\subsubsection{\texttt{getfd}}
+\texttt{encode} se encarga de abrir un archivo cuyo nombre se pasa como parámetro y de devolver un file descriptor en su nombre.
+
+\subsection{Especificaciones}
+
+El funcionamiento del algoritmo de encoding/decoding es el siguiente:
+
+* Para codificar:
+Se toma una cantidad establecida de bytes del mensaje a codificar (3 caracteres para el caso en cada ciclo), y se obtienen los seis bits siguientes necesarios para un símbolo en base64, utilizando decalajes (instrucciones MIPS sll y srl). Asi, cada word de 32 bits con sus seis bits menos significativos (parte derecha de la secuencia de bits), indica el código correspondiente en base 64, guardado en una tabla con todas las posibles secuencias de caracteres que puede tomar un texto en dicha base. Luego guarda cada símbolo correspondiente en talba -del nuevo mensaje codificado- en un archivo de salida.
+
+* Para decodificar:
+El camino es inverso a la codificación, se toma una cantidad establecida de bytes del mensaje a decodificar (4 caracteres para el caso en cada ciclo), y se obtienen los ocho bits siguientes necesarios para un símbolo en la tabla base64, mediante decalajes (instrucciones MIPS sll y srl). Asi, cada word de 32 bits con sus ocho bits menos significativos (parte derecha de la secuencia de bits), coincide con un caracter código en la tabla base64. Mediante las posiciones de éstos en la tabla recostruye los 8 bits de los caracteres originales. Luego guarda cada caracter ASCII en un archivo de salida.
+
+
+\subsection{Dificultades}
+El tiempo de aprendizaje de las instrucciones assembly, sumado al trabajo de adecuación de las estructuras conocidas del C/C++ hacia còdigo y comentarios en assembly es considerable y tedioso y novedoso. Se encontraron dificultades en...
+
+\section{Compilación}
+Los argumentos utilizados para la compilación son los siguientes:
+
+\begin{description}
+\item[-c] Compila el código fuente pero no corre el linker. Genera el código objeto.
+
+\item[-o] Especifica el archivo de salida (ya sea un archivo objeto, ejecutable, ensamblado).
+
+\item[-Wall] Activa los mensajes de warning.
+
+\item[-I] Agrega el directorio especificado a la lista de directorios buscados para los archivos header
+\end{description}
+
+Los argumentos para la generación del código assembly con los siguientes:
+
+\begin{description}
+	\item[-Wall] Activa los mensajes de warning.
+	
+	\item[-std=c99] Se selecciona el estándar C99.
+	
+	\item[-O0] No se aplica optimizaciones por parte del compilador
+	
+	\item[-S]  detiene al compilador luego de generar el assembly.
+	
+	\item[-mrnames] indica al compilador que
+	genere la salida utilizando nombre de registro en lugar
+	de número de registro
+	
+\end{description}
+
+\section{Resultados}
+
+\subsection{Código Assembly}
+Se adjunta una porción del código MIPS al final del informe.
+
+\subsection{Pruebas}
+A continuación se muestran las pruebas realizadas con sus respectivas salidas por consola y/o archivos.
+
+\texttt{./tp0\\
+Man\\
+TWFu\\
+}
+
+\texttt{./tp0\\
+M\\
+TQ==\\
+}
+
+\texttt{./tp0\\
+Ma\\
+TWE=\\
+}
+
+\texttt{./tp0\\
+any carnal pleasure.\\
+YW55IGNhcm5hbCBwbGVhc3VyZS4=\\
+}
+
+\texttt{./tp0\\
+	any carnal pleasure\\
+	YW55IGNhcm5hbCBwbGVhc3VyZQ==\\
+}
+
+\texttt{./tp0\\
+any carnal pleasur\\
+YW55IGNhcm5hbCBwbGVhc3Vy\\
+}
+
+\texttt{./tp0\\
+	any carnal pleasu\\
+	YW55IGNhcm5hbCBwbGVhc3U=\\
+}
+
+\texttt{./tp0\\
+	any carnal pleas\\
+	YW55IGNhcm5hbCBwbGVhcw==\\
+}
+
+\texttt{./tp0 -i emptyFile.txt\\
+	\\
+}
+
+\texttt{./tp0 -i example1-encode.txt\\
+TWFuIGlzIGRpc3Rpbmd1aXNoZWQsIG5vdCBvbmx5IGJ5IGhpcyByZWFzb24sIGJ\\
+1dCBieSB0aGlzIHNpbmd1bGFyIHBhc3Npb24gZnJvbSBvdGhlciBhbmltYWxzLC\\
+B3aGljaCBpcyBhIGx1c3Qgb2YgdGhlIG1pbmQsIHRoYXQgYnkgYSBwZXJzZXZlc\\
+mFuY2Ugb2YgZGVsaWdodCBpbiB0aGUgY29udGludWVkIGFuZCBpbmRlZmF0aWdh\\
+YmxlIGdlbmVyYXRpb24gb2Yga25vd2xlZGdlLCBleGNlZWRzIHRoZSBzaG9ydCB\\
+2ZWhlbWVuY2Ugb2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=\\
+}
+
+\texttt{cat example1-encode.txt | ./tp0 | ./tp0 -a decode\\
+Man is distinguished, not only by his reason, but by this singular passion from other animals, which\\ is a lust of the mind, that by a perseverance of delight in the continued and indefatigable\\ generation of knowledge, exceeds the short vehemence of any carnal pleasure.\\
+}
+
+\section{Conclusiones}
+Luego de ejecutar ambas versiones, tanto la realizada con compilación normal como la realizada sobre el emulador, podemos concluir que se han comprendido los usos generales de las herramientas propuestas por la materia y se han afianzado las técnicas de programación necesarias para resolver este tipo de problemas.
+
+% Citas bibliográficas.
+\begin{thebibliography}{99}
+
+\bibitem{GXemul} Sitio web de GXemul http://gxemul.sourceforge.net/
+
+\bibitem{Manual getopt} Sitio web de GNU https://www.gnu.org/
+
+\bibitem{Wikipedia} Base 64 https://en.wikipedia.org/wiki/Base64
+
+\end{thebibliography}
+
+\end{document}
