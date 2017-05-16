@@ -7,9 +7,9 @@
 .global base64_encode
 .ent base64_encode
 
-
-
-
+#la llamada a esta funcion va a ser readFile(int fd, int bytes);
+#a0 es el file descriptor del archivo
+#a1 es la cantidad de bytes que voy a leer del archivo
 base64_encode:
               .frame $fp, 40, ra
               .set noreorder
@@ -23,7 +23,7 @@ base64_encode:
               sw $fp,36(sp)       #guardo el frama pointer
 
               sw a0,48(sp)        #guardo a0 en el stack del caller
-              sw a1,52(sp)        #guardo a1 en el stak de caller
+              sw a1,56(sp)        #guardo a1 en el stak de caller
 
               # voy a utilizar los registros s0,s1,s2 asi que los guardo
 
@@ -115,6 +115,7 @@ _shifteo:      mul t4,s0,s2        # t4 = t0*t2 = i*6
               blt t0,t1, _check_padding
 
               # en t6 tengo los bits que me interesa, en los bits mas bajos
+              jal _check_position
 
 _get_character:
               #cargo en t3 el caracter que corresponde en base64
@@ -123,9 +124,9 @@ _get_character:
               sb  t3,character
 
               #imprimo por pantalla el caracter en base64
-              lw a0,52($fp)             # el fd = 1 es porque imprimo por STDIN
-              la a1,character     # cargo la direccion de la direccion de memoria
-              lw a2,1             # el syscall tiene que leer un byte
+              li a0,1             #el fd = 1 es porque imprimo por STDIN
+              la a1,character     #cargo la direccion de la direccion de memoria
+              li a2,1             #el syscall tiene que leer un byte
               li v0,SYS_write
               syscall
 
@@ -183,6 +184,21 @@ _check_padding:
              #si es cero, lo seteo en 64
              li t6,64
              j _get_character
+_check_position:
+              #chequeo si la posicion obtenida para la base64
+              #es una posicion valida
+              li t0,0          # menor posicion posible
+              li t1,64        # maxima posicion posible
+              #si la posicion es mayor a 64
+              bgt t6,t1,_error_position
+              # si la posicion es menor a 0
+              blt t6,t0,_error_position
+              j ra
+
+_error_position:
+              li v0,1
+              j _fin
+
 
               #imprimo por pantalla el fin de linea
 _fin:          li a0,1
@@ -217,4 +233,12 @@ character:    .space 1
 
 
 base64:       .ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-endLine:      .asciiz "\n
+endLine:      .asciiz "\n"
+
+              .rdata
+              .global errmsg
+              .align 2
+errmsg:  .word error_0, error_1, error_2
+error_0: .asciiz "Err1r"
+error_1: .asciiz "Err2r"
+error_2: .asciiz "Err3r"

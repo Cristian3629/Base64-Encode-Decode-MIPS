@@ -4,11 +4,7 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <unistd.h>
-//#include "base64_encode.S"
-//#include "base64_decode.S"
-
-extern int base64_encode(int infd,int outfd);
-extern int base64_decode(int infd,int outfd);
+#include "tp1.h"
 
 void help() {
         printf( "Usage:\n"
