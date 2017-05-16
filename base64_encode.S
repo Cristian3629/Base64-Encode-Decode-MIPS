@@ -11,7 +11,7 @@
 #a0 es el file descriptor del archivo
 #a1 es la cantidad de bytes que voy a leer del archivo
 base64_encode:
-              .frame $fp, 40, ra
+              .frame $fp, 48, ra
               .set noreorder
               .cpload t9
               .set reorder
