@@ -111,6 +111,8 @@ search_character:
 		j search_character;				#contiuno con la busqueda del caracter
 		
 decode_characters:
+		addiu s6, s6, 1;	#sumo una posicion a s6
+
 		#segun el caracter a traducir, elijo que hacer
 		li t0, 0;
 		beq t0, s7, first_character;
@@ -130,29 +132,6 @@ first_character:
 
 		sw t2, 32(sp);	#guardo los primeros 6 bits que me interesan del primer caracter en el SRA
 		
-		#ori t2, t2, 0b00000001;
-
-		#sb t2, buffer_traduccion; #guardo la primer tira de bits XXXXXX00
-
-		#inicializo el buffer de traduccion
-		#sw zero, translate_buffer;
-		#cargo en un buffer de 1 byte el caracter en  base 64
-        #sb  t2, translate_buffer;
-
-        #imprimo por pantalla el caracter en base64
-        #li a0,1             #el fd = 1 es porque imprimo por STDIN
-        #la a1, buffer_traduccion;     #cargo la direccion de la direccion de memoria
-        #li a2,1             #el syscall tiene que leer un byte
-        #li v0,SYS_write
-        #syscall
-
-		#tengo los caracteres en el buffer, printeo lo que lei
-        #li a0, 1;				#cargo el fd en a0 (1 = stdout)
-        #la a1, base64(s2);		#cargo en a1 la direccion de memoria de donde leo
-        #li a2, 1;				#cantidad de caracteres a escribir
-        #li v0, SYS_write;
-        #syscall;
-
         addiu s7, s7, 1;		#decodificado el primer caracter(parcialmente), seteo para que codifique el segundo
         j decode;
 
@@ -180,9 +159,10 @@ second_character:
         #debug
 
         move t0, s2;	#recupero el valor original leido a t0
+        
         li t1, 4;
-        sll t0, t0, t1;	#shifteo 4 posiciones a izquierda para quedarme con los 4 bits que me interesan para el segundo caracter
-		sw t0, 28(sp);	#guardo los primeros 4 bits que me interesan del segundo caracter en el SRA
+        sll t2, t0, t1;	#shifteo 4 posiciones a izquierda para quedarme con los 4 bits que me interesan para el segundo caracter
+		sw t2, 28(sp);	#guardo los primeros 4 bits que me interesan del segundo caracter en el SRA
 
         addiu s7, s7, 1; #decodificado el primer caracter y el segundo parcialmente, seteo para que codifique el tercero
         j decode;
