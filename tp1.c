@@ -4,10 +4,13 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <unistd.h>
+//#include "base64_encode.S"
+//#include "base64_decode.S"
+//#include "error_out.S"
 
 extern int base64_encode(int infd,int outfd);
 extern int base64_decode(int infd,int outfd);
-extern void error_out(int errorNum);
+extern const char* errmsg[];
 
 void help() {
         printf( "Usage:\n"
@@ -57,7 +60,8 @@ void charCopy(char** ch1,char* ch2){
 }
 
 void print_error(int errorNum){
-        error_out(errorNum);
+      char* c = errmsg[errorNum];
+      printf("el error:%s",c);
 }
 
 int main (int argc, char *argv[]) {

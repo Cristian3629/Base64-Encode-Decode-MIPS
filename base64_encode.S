@@ -156,7 +156,7 @@ _check_padding:
              j _get_character
 
               #imprimo por pantalla el fin de linea
-_fin:         li v0,4
+_fin:
                li a0,1
               la a1,endLine
               li a2,1
@@ -171,6 +171,7 @@ _fin:         li v0,4
               lw s2,24($fp)
               lw $fp,36($fp)
               addu sp,sp,48
+              li v0,4
               jr ra
               .end base64_encode
 
