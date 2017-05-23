@@ -31,6 +31,8 @@ base64_decode:
 	#uso el $fp para moverme por el stack
 	move $fp, sp;
 
+	li s3, 0;	#se usa para controlar los errores
+
 	#salvo los argumentos
 	sw a0,48($fp);		#a0 = infd
 	sw a1,56($fp);		#a1 = outfd
@@ -76,14 +78,7 @@ check_eof:
 
 error:
 	#cargo el numero de posicion en el array de errores a devolver
-	move v0, t5;	#t5 lo uso para informacion de debug
-	#tengo los caracteres en el buffer, printeo lo que lei
-	#li a0, 1;			#cargo el fd en a0 (1 = stdout)
-	#la a1, base64;		#cargo en a1 la direccion de memoria de donde leo
-	#li a2, 3;			#cantidad de caracteres a escribir
-	#li v0, SYS_write;
-	#syscall;
-
+	move v0, s3;	#s3 lo uso para informacion de debug
 	j end;
 
 decode:
@@ -100,13 +95,15 @@ search_character:
 	beq t1, s1, decode_characters;	#comparo el caracter leido del buffer con el de la posicion de la tabla
 		
 	addiu s2, s2, 1;				#s2=s2+1, lo uso para avanzar una posicion
-	li t3, 66;
 	
 	#t3=66, lo uso para conocer si llegue a la ultima posicion del array de trauccion
-	li t5, 0;	#t5 lo uso como debug para mandar mensajes de error
+	li t3, 66;
+	
+	li s3, 1;
 	bgeu s2, t3, error 				#s2>=t3 (66) entonces es un error, el caracter no existe en la tabla de traduccion		
 	beq s2, t3, error;				#si al sumar 1 a s2 me paso del tamaño del array de traduccion, es un error y el caracter no existe
-	
+	li s3, 0;
+
 	j search_character;				#contiuno con la busqueda del caracter
 		
 decode_characters:
@@ -222,14 +219,15 @@ fourth_character:
 	j write_fd;
 
 end:
-	 #recupero el stack a su estado anterior y los registros que utilice
+	move v0, s3;
+	#recupero el stack a su estado anterior y los registros que utilice
 	lw gp, 44(sp)
-	lw ra,40(sp)
-	lw $fp,36(sp)
-	lw s0,32(sp)
-	lw s1,28(sp)
-	lw s2,24(sp)
-	addu sp,sp,48
+	lw ra, 40(sp)
+	lw $fp, 36(sp)
+	lw s0, 32(sp)
+	lw s1, 28(sp)
+	lw s2, 24(sp)
+	addu sp, sp, 48
 	jr ra
 
 .end base64_decode

@@ -60,10 +60,12 @@ void charCopy(char** ch1,char* ch2){
 }
 
 void print_error(int errorNum){
-      if (errorNum > 0){
-         char* c = errmsg[errorNum];
-         printf("%s\n",c);
-      }
+    if (errorNum > 0){
+        const char* c = errmsg[errorNum]; 
+        if(c != NULL) {
+            printf("%s\n",c);
+        }
+    }
 }
 
 int main (int argc, char *argv[]) {
