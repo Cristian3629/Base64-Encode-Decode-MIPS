@@ -11,36 +11,34 @@
 #a0 es el file descriptor del archivo
 #a1 es la cantidad de bytes que voy a leer del archivo
 base64_encode:
-              .frame $fp, 48, ra
+              .frame $fp, 56, ra
               .set noreorder
               .cpload t9
               .set reorder
 
-              subu sp,sp,48       #El 40 lo tengo que cambiar luego.
-              .cprestore 48       #No se que hace
-              sw gp, 44(sp)        #guardo el global pointer
-              sw ra, 40(sp)        #guardo el ra
-              sw $fp,36(sp)       #guardo el frama pointer
+              subu sp,sp,56
+              .cprestore 56       #No se que hace
+              sw gp, 52(sp)        #guardo el global pointer
+              sw $fp,48(sp)       #guardo el frama pointer
+              sw ra, 44(sp)        #guardo el ra
+              # muevo el sp en el fp y lo utilizo
+              move $fp,sp
 
-              sw a0,48(sp)        #guardo a0 en el stack del caller
-              sw a1,52(sp)        #guardo a1 en el stak de caller
+              sw a0,60($fp)        #guardo a0 en el stack del caller
+              sw a1,64($fp)        #guardo a1 en el stak de caller
 
               # voy a utilizar los registros s0,s1,s2 asi que los guardo
 
-              sw s0,32(sp)
-              sw s1,28(sp)
-              sw s2,24(sp)
-
-              # muevo el sp en el fp y lo utilizo
-
-              move $fp,sp
-
+              sw s0,40($fp)
+              sw s1,36($fp)
+              sw s2,32($fp)
+              sw s3,28($fp) 
               # implicitamente no hubo error asi que cargo en s3
               li s3,0
               #cargo los parametros para hacer la syscall
               #leo del archivo que me pasaron por parametro
 
-_read_file:     lw a0,48($fp)        # fd = infd
+_read_file:     lw a0,60($fp)        # fd = infd
               sw zero,buffer
               la a1,buffer        # buf = es el direccion donde quiere que la funcion guarde lo que leyo
               lw a2,lenght        # count = 3
@@ -48,12 +46,12 @@ _read_file:     lw a0,48($fp)        # fd = infd
               syscall
 
               #guardo la cantidad de bytes que lei del archivo
-              sw v0,16($fp)
-              lw t0,16($fp)
+              sw v0,20($fp)
+              lw t0,20($fp)
               beqz t0,_fin
               j _check_end_line
 
-_check_zero:  lw t0,16($fp)
+_check_zero:  lw t0,20($fp)
               beqz t0,_fin
 
               #Dada la arquitectura little endian, y para poder encodear a
@@ -101,7 +99,7 @@ _shifteo:      mul t4,s0,s2        # t4 = t0*t2 = i*6
               srl t6,t6,t5        # shift right logical t4 bits
 
               #si cantidad de bytes leido es menor a 3
-              lw t0,16($fp)
+              lw t0,20($fp)
               li t1,3
               blt t0,t1, _check_padding
 
@@ -113,7 +111,7 @@ _get_character:
               sb  t3,character
 
               #imprimo por pantalla el caracter en base64
-              lw a0,52($fp)             #el fd = 1 es porque imprimo por STDIN
+              lw a0,64($fp)             #el fd = 1 es porque imprimo por STDIN
               la a1,character     #cargo la direccion de la direccion de memoria
               li a2,1             #el syscall tiene que leer un byte
               li v0,SYS_write
@@ -131,7 +129,7 @@ _get_character:
 
 _verific_status:
               #obtengo la cantidad de bytes que lei del archivo
-              lw t0,16($fp)
+              lw t0,20($fp)
               li t1,3
 
               #si la cantidad de bytes es menor a 3, termino el programa
@@ -141,13 +139,13 @@ _verific_status:
 
 _check_end_line:
              #verifico si algun salto de linea y lo saco
-             lw t0,16($fp)
+             lw t0,20($fp)
              subu t0,t0,1
              lbu t1,buffer(t0)
              li t2,10
              bne t1,t2,_encode
              sb zero,buffer(t0)
-             sw t0,16($fp)
+             sw t0,20($fp)
              j _check_zero
 
 _check_padding:
@@ -173,14 +171,15 @@ _fin:
               syscall
 
               #recupero el stack a su estado anterior y los registros que utilice
-              lw gp, 44($fp)
-              lw ra,40($fp)
-              lw s0,32($fp)
-              lw s1,28($fp)
-              lw s2,24($fp)
-              lw $fp,36($fp)
-              addu sp,sp,48
+              lw gp, 52($fp)
+              lw ra,44($fp)
+              lw s0,40($fp)
+              lw s1,36($fp)
+              lw s2,32($fp)
+              lw $fp,48($fp)
+              addu sp,sp,56
               move v0,s3
+              lw s3,28($fp)
               jr ra
               .end base64_encode
 
