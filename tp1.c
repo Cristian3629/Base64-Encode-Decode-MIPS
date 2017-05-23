@@ -60,8 +60,10 @@ void charCopy(char** ch1,char* ch2){
 }
 
 void print_error(int errorNum){
-      char* c = errmsg[errorNum];
-      printf("el error:%s",c);
+      if (errorNum > 0){
+         char* c = errmsg[errorNum];
+         printf("%s\n",c);
+      }
 }
 
 int main (int argc, char *argv[]) {
@@ -130,10 +132,8 @@ int main (int argc, char *argv[]) {
 
         }else{
                 salida = base64_decode(infd, outfd);
-                printf("Slida: %d", salida);
                 print_error(salida);
         }
-        printf("Salida:%d",salida);
         print_error(salida);
         return 0;
 }
