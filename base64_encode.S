@@ -208,12 +208,12 @@ _fin:          li a0,1
               syscall
 
               #recupero el stack a su estado anterior y los registros que utilice
-              lw gp, 44(sp)
-              lw ra,40(sp)
-              lw $fp,36(sp)
-              lw s0,32(sp)
-              lw s1,28(sp)
-              lw s2,24(sp)
+              lw gp, 44($fp)
+              lw ra,40($fp)
+              lw $fp,36($fp)
+              lw s0,32($fp)
+              lw s1,28($fp)
+              lw s2,24($fp)
               addu sp,sp,48
               jr ra
               .end base64_encode
