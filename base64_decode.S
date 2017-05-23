@@ -75,12 +75,14 @@ check_eof:
 	j error;
 
 error:
+	#cargo el numero de posicion en el array de errores a devolver
+	move v0, t5;	#t5 lo uso para informacion de debug
 	#tengo los caracteres en el buffer, printeo lo que lei
-	li a0, 1;			#cargo el fd en a0 (1 = stdout)
-	la a1, base64;		#cargo en a1 la direccion de memoria de donde leo
-	li a2, 3;			#cantidad de caracteres a escribir
-	li v0, SYS_write;
-	syscall;
+	#li a0, 1;			#cargo el fd en a0 (1 = stdout)
+	#la a1, base64;		#cargo en a1 la direccion de memoria de donde leo
+	#li a2, 3;			#cantidad de caracteres a escribir
+	#li v0, SYS_write;
+	#syscall;
 
 	j end;
 
@@ -98,10 +100,13 @@ search_character:
 	beq t1, s1, decode_characters;	#comparo el caracter leido del buffer con el de la posicion de la tabla
 		
 	addiu s2, s2, 1;				#s2=s2+1, lo uso para avanzar una posicion
-	li t3, 66;						#t3=66, lo uso para conocer si llegue a la ultima posicion del array de trauccion
-	bgeu s2, t3, error 				#s2>=t3 (66) entonces es un error, el caracter no existe en la tabla de traduccion
-		
-	beq s2, t3, error;				#si al sumar 4 a s2 me paso del tamaño del array de traduccion, es un error y el caracter no existe
+	li t3, 66;
+	
+	#t3=66, lo uso para conocer si llegue a la ultima posicion del array de trauccion
+	li t5, 0;	#t5 lo uso como debug para mandar mensajes de error
+	bgeu s2, t3, error 				#s2>=t3 (66) entonces es un error, el caracter no existe en la tabla de traduccion		
+	beq s2, t3, error;				#si al sumar 1 a s2 me paso del tamaño del array de traduccion, es un error y el caracter no existe
+	
 	j search_character;				#contiuno con la busqueda del caracter
 		
 decode_characters:
@@ -246,6 +251,3 @@ buffer_traduccion:
 	.align 2
 base64:
 	.ascii "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/="
-
-endLine:
-	.asciiz "\n"

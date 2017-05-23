@@ -4,7 +4,13 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <unistd.h>
-#include "tp1.h"
+//#include "base64_encode.S"
+//#include "base64_decode.S"
+//#include "error_out.S"
+
+extern int base64_encode(int infd,int outfd);
+extern int base64_decode(int infd,int outfd);
+extern void error_out(int errorNum);
 
 void help() {
         printf( "Usage:\n"
@@ -53,6 +59,9 @@ void charCopy(char** ch1,char* ch2){
         strcat(*ch1,ch2);
 }
 
+void print_error(int errorNum){
+        error_out(errorNum);
+}
 
 int main (int argc, char *argv[]) {
         bool encode64 = true; //Por defecto se encodifica
@@ -115,9 +124,11 @@ int main (int argc, char *argv[]) {
                 outfd = getfd(outputFileName);
         }
         if (encode64){
-                base64_encode(infd,outfd);
+                base64_encode(infd, outfd);
         }else{
-                base64_decode(infd, outfd);
+                int salida = base64_decode(infd, outfd);
+                printf("Slida: %d", salida);
+                print_error(salida);
         }
         return 0;
 }
