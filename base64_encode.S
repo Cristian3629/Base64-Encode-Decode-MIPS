@@ -156,7 +156,8 @@ _check_padding:
              j _get_character
 
               #imprimo por pantalla el fin de linea
-_fin:          li a0,1
+_fin:         li v0,4
+               li a0,1
               la a1,endLine
               li a2,1
               li v0,SYS_write

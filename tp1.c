@@ -4,9 +4,6 @@
 #include <getopt.h>
 #include <stdbool.h>
 #include <unistd.h>
-//#include "base64_encode.S"
-//#include "base64_decode.S"
-//#include "error_out.S"
 
 extern int base64_encode(int infd,int outfd);
 extern int base64_decode(int infd,int outfd);
@@ -70,6 +67,7 @@ int main (int argc, char *argv[]) {
         char* outputFileName = NULL;
         char* inputFileName = NULL;
         int c;
+        int salida;
         while (1) {
                 static struct option long_options[] = {
                                 {"version", no_argument, 0, 'V'},
@@ -124,11 +122,14 @@ int main (int argc, char *argv[]) {
                 outfd = getfd(outputFileName);
         }
         if (encode64){
-                base64_encode(infd, outfd);
+               salida =  base64_encode(infd, outfd);
+
         }else{
-                int salida = base64_decode(infd, outfd);
+                salida = base64_decode(infd, outfd);
                 printf("Slida: %d", salida);
                 print_error(salida);
         }
+        printf("Salida:%d",salida);
+        print_error(salida);
         return 0;
 }
