@@ -35,6 +35,8 @@ base64_encode:
 
               move $fp,sp
 
+              # implicitamente no hubo error asi que cargo en s3
+              li s3,0
               #cargo los parametros para hacer la syscall
               #leo del archivo que me pasaron por parametro
 
@@ -116,6 +118,7 @@ _get_character:
               li a2,1             #el syscall tiene que leer un byte
               li v0,SYS_write
               syscall
+              bltz a3,_error_syscall
 
               # j--, t1--
               sub s1,s1,1
@@ -155,9 +158,15 @@ _check_padding:
              li t6,64
              j _get_character
 
+
+_error_syscall:
+             #si llego aca hubo un error
+              li s3,4
+              j _fin
+
               #imprimo por pantalla el fin de linea
 _fin:
-               li a0,1
+              li a0,1
               la a1,endLine
               li a2,1
               li v0,SYS_write
@@ -171,7 +180,7 @@ _fin:
               lw s2,24($fp)
               lw $fp,36($fp)
               addu sp,sp,48
-              li v0,4
+              move v0,s3
               jr ra
               .end base64_encode
 
