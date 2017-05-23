@@ -134,7 +134,6 @@ int main (int argc, char *argv[]) {
 
         }else{
                 salida = base64_decode(infd, outfd);
-                print_error(salida);
         }
         print_error(salida);
         return 0;

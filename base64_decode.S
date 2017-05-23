@@ -34,7 +34,7 @@ base64_decode:
 	li s3, 0;	#se usa para controlar los errores
 
 	#salvo los argumentos
-	sw a0,48($fp);		#a0 = infd
+	sw a0,52($fp);		#a0 = infd
 	sw a1,56($fp);		#a1 = outfd
 
 	#guardo la informacion de control
@@ -46,7 +46,7 @@ read_fd:
 	li s6, 0;				#referencia para saber que caracter lei del buffer
 	li s7, 0;				#referencia para saber que caracter decodificar
 
-	lw a0, 48($fp);			#cargo el fd en a0
+	lw a0, 52($fp);			#cargo el fd en a0
 	sw zero, buffer;		#inicializo el buffer en 0
 	la a1, buffer;			#a1 = direccion donde se quiere guardar lo que se lee
 	lw a2, lenght;			#cantidad de caracteres a leer 
