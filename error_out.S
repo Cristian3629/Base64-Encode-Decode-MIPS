@@ -53,7 +53,7 @@ end:
 .global errmsg
 .align 2
 
-errmsg:  .word error_0, error_1, error_2
+errmsg:  .word error_0, error_1, error_2, error_3, error_4
 no_error: asciiz ""
 error_0: .asciiz "Caracter no valido de base 64"
 error_1: .asciiz "Error en archivo"
