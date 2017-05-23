@@ -70,7 +70,6 @@ check_eof:
 	li t1, 10;
 	#si recibi un salto de linea, salgo del programa
 	beq t0,t1, end;
-	#el codigo ASCII del salto de linea /n es 10
 			
 	#si no, es un error
 	j error;
@@ -88,11 +87,9 @@ error:
 decode:
 	li t0, 4;
 	beq s6, t0, read_fd;	#si ya procese los 4 caracteres, continuo con la lectura de otros 4
-		
 
 	lbu s1, buffer(s6);		#cargo el primer caracter leido en s1
-	li s2, 0; 				#cargo s2 en 0 para usarlo de referencia en la tabla de tradcucion
-	li s3, 0;				
+	li s2, 0;				#cargo s2 en 0 para usarlo de referencia en la tabla de tradcucion				
 	j search_character;		
 
 search_character:
@@ -124,7 +121,7 @@ decode_characters:
 	j error;				#si llega aca, algo salio mal
 
 write_fd:
-	lb t0, 32($fp);					#guardo el primer caracter	
+	lbu t0, 32($fp);				#cargo el primer caracter	
 	sb t0, buffer_traduccion;
 	lw a0, 56($fp);					#imprimo en el fd
 	la a1, buffer_traduccion;		#cargo la direccion de la direccion de memoria
@@ -133,14 +130,14 @@ write_fd:
 	syscall
 
 	#repito para los otros dos caracteres
-	lb t0, 28($fp); 				#guardo el primer caracter	
+	lbu t0, 28($fp); 				#cargo el segundo caracter	
 	sb t0, buffer_traduccion;
 	la a1, buffer_traduccion;		#cargo la direccion de la direccion de memoria
 	li a2, 1;						#el syscall tiene que leer un byte
 	li v0,SYS_write
 	syscall;
 
-	lb t0, 24($fp);					#guardo el primer caracter	
+	lbu t0, 24($fp);				#cargo el tercer caracter	
 	sb t0, buffer_traduccion;
 	la a1, buffer_traduccion;		#cargo la direccion de la direccion de memoria
 	li a2, 1;						#el syscall tiene que leer un byte
@@ -156,7 +153,7 @@ first_character:
 	li t1, 2;			#guardo la cantidad de lugares a desplazar
 	sll t2, t0, t1;		#shifteo a izquierda dos posiciones, guardo el resultado en t2
 
-	sw t2, 32(sp);		#guardo los primeros 6 bits que me interesan del primer caracter en el SRA
+	sb t2, 32($fp);		#guardo los primeros 6 bits que me interesan del primer caracter en el SRA
 		
 	addiu s7, s7, 1;	#decodificado el primer caracter(parcialmente), seteo para que codifique el segundo
 	j decode;
@@ -173,13 +170,13 @@ second_character:
 	lbu t2, 32($fp);	#carga en t2 el primer caracter sin los 2 bits finales 
 	or t0, t0, t2;	#or logico entre los 6 bits del primer caracter y los primeros 2 bits del segundo
 	#ahora en t0 tengo el primer caracter real
-	sw t0, 32(sp);	#guardo los 8 bits completos del primer caracter
+	sb t0, 32($fp);	#guardo los 8 bits completos del primer caracter
 
 	move t0, s2;	#recupero el valor original leido a t0
         
 	li t1, 4;
 	sll t2, t0, t1;	#shifteo 4 posiciones a izquierda para quedarme con los 4 bits que me interesan para el segundo caracter
-	sw t2, 28($fp);	#guardo los primeros 4 bits que me interesan del segundo caracter en el SRA
+	sb t2, 28($fp);	#guardo los primeros 4 bits que me interesan del segundo caracter en el SRA
 
 	addiu s7, s7, 1; #decodificado el primer caracter y el segundo parcialmente, seteo para que codifique el tercero
 	j decode;
@@ -196,31 +193,25 @@ third_character:
 	lbu t2, 28($fp);	#carga en t2 el segundo caracter sin los 4 bits finales 
 	or t0, t0, t2;		#or logico entre los 4 bits del segundo caracter y los 4 bits del tercero
 	#ahora en t0 tengo el segundo caracter real
-	sw t0, 28($fp);		#guardo los 8 bits completos del segundo caracter
+	sb t0, 28($fp);		#guardo los 8 bits completos del segundo caracter
 
 	move t0, s2;		#recupero el valor original leido a t0
 	li t1, 6;
-	sll t0, t0, t1;	#shifteo 6 posiciones a izquierda para quedarme con los 2 bits finales que me interesan para el tercer caracter
-	sw t2, 24($fp);	#guardo los primeros 2 bits que me interesan del tercer caracter en el SRA
+	sll t0, t0, t1;		#shifteo 6 posiciones a izquierda para quedarme con los 2 bits finales que me interesan para el tercer caracter
+	sb t2, 24($fp);		#guardo los primeros 2 bits que me interesan del tercer caracter en el SRA
 
 	addiu s7, s7, 1;	#decodificado el primer caracter y el segundo parcialmente, seteo para que codifique el tercero
 	j decode;
 
 fourth_character:
 	#en s2 tengo la posicion del caracter, lo uso para traducirlo
-	move t0, s2;	#guardo el valor en t0 para trabajar tranquilo
-	addi t0, t0, 0b00111111;	#solo para estar seguro que los primeros dos bits son 0
-	
-	lbu t1, 24($fp);	#carga en t1 el tercer caracter sin los 6 bits finales 
-	or t0, t0, t1;	#or logico entre los 2 bits del segundo caracter y los 6 bits del tercero
-	
-	###
-	#REVISAR
-	###
-	addi t0, t0, 1;	#le sumo uno porque anda mas o menos jaja
+	move t0, s2;		#guardo el valor en t0 para trabajar tranquilo
 
+	lbu t2, 24($fp);	#carga en t2 el tercer caracter sin los 6 bits finales 
+	or t0, t0, t2;		#or logico entre los 2 bits del segundo caracter y los 6 bits del tercero
+	
 	#ahora en t0 tengo el tercer caracter real
-	sw t0, 24($fp);	#guardo los 8 bits completos del segundo caracter
+	sb t0, 24($fp);	#guardo los 8 bits completos del segundo caracter
 
 	addiu s7, s7, 1; #decodificado el primer caracter y el segundo parcialmente, seteo para que codifique el tercero
 	j write_fd;
