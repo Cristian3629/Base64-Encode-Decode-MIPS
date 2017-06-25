@@ -297,28 +297,16 @@ fourth_character:
         j write_fd;
 
 end:
-<<<<<<< HEAD
-         #recupero el stack a su estado anterior y los registros que utilice
-        lw gp, 44(sp)
-        lw ra,40(sp)
-        lw $fp,36(sp)
-        lw s0,32(sp)
-        lw s1,28(sp)
-        lw s2,24(sp)
-        addu sp,sp,48
-        jr ra
-=======
-	move v0, s3;
-	#recupero el stack a su estado anterior y los registros que utilice
-	lw gp, 44(sp)
-	lw ra, 40(sp)
-	lw $fp, 36(sp)
-	lw s0, 32(sp)
-	lw s1, 28(sp)
-	lw s2, 24(sp)
-	addu sp, sp, 48
-	jr ra
->>>>>>> c9ce9f2b19af9710a297c590ebae694e79ccd5ea
+					move v0, s3;
+					#recupero el stack a su estado anterior y los registros que utilice
+					lw gp, 44(sp)
+					lw ra, 40(sp)
+					lw $fp, 36(sp)
+					lw s0, 32(sp)
+					lw s1, 28(sp)
+					lw s2, 24(sp)
+					addu sp, sp, 48
+					jr ra
 
 .end base64_decode
 
