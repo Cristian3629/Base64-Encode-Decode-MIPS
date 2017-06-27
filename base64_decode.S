@@ -52,6 +52,8 @@ read_fd:
         li v0, SYS_read;                #llamada al sistema (leer)
         syscall;
 
+				li t0,0
+				
         move s0, v0;                    #v0 -> s0, guardo el codigo de salida en t0
 
         li t1, 4;       #t1=4, lo uso para comparar con lo leido
