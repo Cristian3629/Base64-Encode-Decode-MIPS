@@ -52,8 +52,8 @@ read_fd:
         li v0, SYS_read;                #llamada al sistema (leer)
         syscall;
 
-				li t0,0
-				
+        li t0,0
+        bne t0,a3,error_read_file       #verifico si hubo error al leer
         move s0, v0;                    #v0 -> s0, guardo el codigo de salida en t0
 
         li t1, 4;       #t1=4, lo uso para comparar con lo leido
@@ -117,6 +117,9 @@ error_character_dont_find:
         li s3,1
         j end
 
+error_read_file:
+       li s3,4
+       j end
 decode_characters:
         addiu s6, s6, 1;        #sumo una posicion a s6
 
